@@ -1,0 +1,191 @@
+/* Existing styles (keep them)... */
+
+.contact-form {
+  max-width: 700px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.contact-form h2 {
+  text-align: center;
+  color: #003366;
+}
+
+.contact-form label {
+  display: block;
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.contact-form button {
+  margin-top: 20px;
+  background-color: #ffe600;
+  color: black;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.contact-form .contact-info {
+  margin-top: 30px;
+  font-size: 15px;
+  line-height: 1.6;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+}
+
+/* WhatsApp Button Style */
+.whatsapp-button {
+  display: inline-block;
+  background: #25D366;
+  color: white;
+  padding: 10px 20px;
+  margin-top: 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Floating WhatsApp */
+.floating-whatsapp {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+.floating-whatsapp img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+/* ========== Global Styles ========== */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+/* ========== Header ========== */
+header {
+  background-color: #111;
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  border-bottom: 5px solid #ffe600;
+}
+
+header img {
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+header h1 {
+  margin: 10px 0 5px;
+  font-size: 28px;
+}
+
+header p {
+  font-style: italic;
+  color: #ffe600;
+  font-size: 16px;
+}
+
+/* ========== Navigation ========== */
+nav {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+nav a {
+  color: white;
+  margin: 0 15px;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 8px 15px;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
+  display: inline-block;
+}
+
+nav a:hover {
+  background-color: #ffe600;
+  color: #111;
+}
+
+/* ========== Hero Section ========== */
+.hero {
+  background-color: #ffe600;
+  color: #111;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.hero h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 30px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero a {
+  background-color: #111;
+  color: #ffe600;
+  padding: 12px 25px;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.hero a:hover {
+  background-color: #333;
+  color: #ffe600;
+}
+
+/* ========== Info Section ========== */
+.info {
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.info h3 {
+  color: #003366;
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+/* ========== Footer ========== */
+footer {
+  background-color: #111;
+  color: white;
+  text-align: center;
+  padding: 15px 10px;
+  font-size: 14px;
+  margin-top: 40px;
+}
