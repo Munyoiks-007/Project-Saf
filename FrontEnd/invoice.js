@@ -1,5 +1,25 @@
 import jsPDF from "https://esm.sh/jspdf";
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBorxcVPBtSOMp7zUZ2_4NQHmwRKPFvlog",
+  authDomain: "mojoenterprise-dfb82.firebaseapp.com",
+  projectId: "mojoenterprise-dfb82",
+  storageBucket: "mojoenterprise-dfb82.appspot.com",
+  messagingSenderId: "847292925516",
+  appId: "1:847292925516:web:94be20251639fe659796e9",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
 window.addEventListener("DOMContentLoaded", () => {
   const addItemBtn = document.getElementById("addItemBtn");
   const itemList = document.getElementById("itemList");
@@ -10,11 +30,73 @@ window.addEventListener("DOMContentLoaded", () => {
   const taxField = document.getElementById("taxAmount");
   const subtotalField = document.getElementById("subtotal");
   const totalField = document.getElementById("total");
+  const viewBtn = document.getElementById("viewInvoicesBtn");
+  const savedList = document.getElementById("savedInvoicesList");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const authSection = document.getElementById("authSection");
+  const salesUI = document.getElementById("salesUI");
+  const saveBtn = document.getElementById("saveBtn");
 
+  authSection.style.display = "flex";
+  salesUI.style.display = "none";
+
+  document.querySelectorAll("#authSection input").forEach((input) => {
+    input.style.padding = "8px";
+    input.style.width = "100%";
+    input.style.border = "1px solid #ccc";
+    input.style.borderRadius = "4px";
+  });
+
+  document.querySelectorAll("#authSection button").forEach((btn) => {
+    btn.style.padding = "8px";
+    btn.style.width = "100%";
+    btn.style.cursor = "pointer";
+    btn.style.borderRadius = "4px";
+    btn.style.border = "none";
+    btn.style.backgroundColor = "#007bff";
+    btn.style.color = "white";
+    btn.style.fontWeight = "bold";
+  });
+
+  let savedVisible = false;
   const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10).replace(/-/g, "");
   invoiceNumberInput.value = `INV-${todayStr}-${randomSuffix}`;
+
+  loginBtn.addEventListener("click", async () => {
+    const email = document.getElementById("authEmail").value;
+    const password = document.getElementById("authPassword").value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      feedbackMsg.textContent = "❌ Login failed";
+      feedbackMsg.style.color = "red";
+      console.error(err);
+    }
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    feedbackMsg.textContent = "✅ Logged out";
+    feedbackMsg.style.color = "black";
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      authSection.style.display = "none";
+      salesUI.style.display = "block";
+      downloadBtn.disabled = false;
+      viewBtn.disabled = false;
+    } else {
+      authSection.style.display = "flex";
+      salesUI.style.display = "none";
+      downloadBtn.disabled = true;
+      viewBtn.disabled = true;
+    }
+  });
 
   addItemBtn.addEventListener("click", () => {
     const row = document.createElement("tr");
@@ -54,95 +136,30 @@ window.addEventListener("DOMContentLoaded", () => {
     totalField.textContent = (subtotal + tax).toFixed(2);
   }
 
-  downloadBtn.addEventListener("click", async () => {
-    feedbackMsg.textContent = "";
-    spinner.style.display = "block";
+  viewBtn.addEventListener("click", async () => {
+    savedVisible = !savedVisible;
+    savedList.innerHTML = "";
 
-    const name = document.getElementById("clientName").value.trim();
-    const date = document.getElementById("invoiceDate").value;
-    const number = document.getElementById("invoiceNumber").value.trim();
-
-    if (!name || !date || !number) {
-      feedbackMsg.textContent = "⚠️ Please fill in Client Name, Date, and Invoice No.";
-      feedbackMsg.style.color = "red";
-      spinner.style.display = "none";
+    if (!savedVisible) {
+      savedList.style.display = "none";
       return;
     }
 
     try {
-      const doc = new jsPDF();
-      const logo = new Image();
-      logo.src = "logo.png";
-
-      await new Promise((resolve) => {
-        logo.onload = resolve;
+      const res = await fetch("http://localhost:3000/api/invoices");
+      const invoices = await res.json();
+      invoices.forEach((inv) => {
+        const li = document.createElement("li");
+        li.textContent = `${inv.invoice_no} | ${inv.client_name} | KES ${inv.total}`;
+        savedList.appendChild(li);
       });
-
-      doc.addImage(logo, "PNG", 10, 10, 30, 30);
-      doc.setFontSize(12);
-      doc.text("Reliability in Electrical Services", 10, 45);
-
-      doc.setFontSize(16);
-      doc.setFont(undefined, "bold");
-      doc.text("Mojo Electrical Enterprise", 50, 18);
-      doc.setLineWidth(0.5);
-      doc.line(50, 20, 180, 20);
-
-      doc.setFontSize(12);
-      doc.setFont(undefined, "normal");
-      doc.text("P.O. Box 98664 - 80100, Mombasa", 50, 26);
-      doc.text("Phone: +254 721 856 011 / 0731 120 072", 50, 32);
-      doc.text("Email: gathucimoses@gmail.com", 50, 38);
-
-      doc.setFontSize(14);
-      doc.setFont(undefined, "bold");
-      doc.text("Sales Invoice", 10, 60);
-      doc.line(10, 62, 60, 62);
-
-      doc.setFontSize(12);
-      doc.setFont(undefined, "normal");
-      doc.text(`Client: ${name}`, 10, 72);
-      doc.text(`Date: ${date}`, 10, 80);
-      doc.text(`Invoice No: ${number}`, 10, 88);
-
-      let y = 100;
-      doc.setFont(undefined, "bold");
-      doc.text("Items:", 10, y);
-      y += 10;
-      doc.setFont(undefined, "normal");
-
-      document.querySelectorAll("#itemList tr").forEach((row, i) => {
-        const item = row.cells[0].querySelector("input").value;
-        const desc = row.cells[1].querySelector("input").value;
-        const qty = row.cells[2].querySelector("input").value;
-        const price = row.cells[3].querySelector("input").value;
-        const total = row.cells[4].textContent;
-        const itemText = `${i + 1}. ${item} | ${desc} | Qty: ${qty} | Price: ${price} | Total: ${total}`;
-        doc.text(itemText, 10, y);
-        y += 10;
-      });
-
-      y += 5;
-      const subtotal = subtotalField.textContent;
-      const tax = parseFloat(taxField.value) || 0;
-      const total = totalField.textContent;
-
-      doc.text(`Subtotal: KES ${subtotal}`, 10, y);
-      y += 8;
-      doc.text(`Tax: KES ${tax.toFixed(2)}`, 10, y);
-      y += 8;
-      doc.text(`Total (After Tax): KES ${total}`, 10, y);
-
-      doc.save(`Invoice_${number}.pdf`);
-
-      feedbackMsg.textContent = "✅ Invoice downloaded successfully!";
-      feedbackMsg.style.color = "green";
+      savedList.style.display = "block";
     } catch (err) {
-      console.error(err);
-      feedbackMsg.textContent = "❌ Failed to download invoice.";
-      feedbackMsg.style.color = "red";
-    } finally {
-      spinner.style.display = "none";
+      console.error("Failed to fetch invoices", err);
     }
+  });
+
+  saveBtn?.addEventListener("click", () => {
+    downloadBtn.click();
   });
 });

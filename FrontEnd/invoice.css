@@ -217,4 +217,13 @@ header .company-info {
   color: #444;
   margin: 4px 0;
 }
+#savedInvoicesList {
+  margin-top: 2rem;
+  padding: 1rem;
+  border-top: 1px solid #ccc;
+}
+
+#authSection {
+  margin-bottom: 20px;
+}
 

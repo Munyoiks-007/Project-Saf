@@ -3,38 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Create and manage invoices for Mojo Electrical Enterprise" />
+  <meta name="keywords" content="invoice, electrical services, Mojo Electrical Enterprise" />
+  <meta name="author" content="Mojo Electrical Enterprise" />
   <title>Create Invoice - Mojo Electrical Enterprise</title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="invoice.css" />
 </head>
 <body>
 
-  <div class="invoice-header-left">
-  <div class="logo-left">
-    <img src="logo.png" alt="Mojo Electrical Logo" />
+  <!-- Auth Section -->
+  <div id="authSection" style="display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin: 50px auto; text-align: center;">
+    <h2>🔐 Secure Login</h2>
+    <input type="email" id="authEmail" placeholder="Email" />
+    <input type="password" id="authPassword" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+    <p id="feedbackMsg"></p>
   </div>
-  <div class="text-left">
-    <h1>Mojo Electrical Enterprise</h1>
-    <p class="slogan">Reliability in Electrical Services</p>
-    <hr />
-  </div>
-</div>
 
-
-
-    <header>
-      <header>
-  <div class="company-info">
-    P.O. Box 98664 - 80100, Mombasa<br>
-    Phone: +254 721 856 011 / 0731 120 072<br>
-    Email: gathucimoses@gmail.com
-  </div>
-  <h2 class="invoice-title">Sales Invoice</h2>
-</header>
-
+  <!-- Invoice UI (Hidden until authenticated) -->
+  <div id="salesUI" style="display: none;">
+    <!-- Invoice Header -->
+    <div class="invoice-header-left">
+      <div class="logo-left">
+        <img src="logo.png" alt="Mojo Electrical Logo" />
       </div>
+      <div class="text-left">
+        <h1>Mojo Electrical Enterprise</h1>
+        <p class="slogan">Reliability in Electrical Services</p>
+        <hr />
+      </div>
+    </div>
+
+    <!-- Company Info -->
+    <header>
+      <div class="company-info">
+        P.O. Box 98664 - 80100, Mombasa<br>
+        Phone: +254 721 856 011 / 0731 120 072<br>
+        Email: gathucimoses@gmail.com
+      </div>
+      <h2 class="invoice-title">Sales Invoice</h2>
     </header>
 
+    <!-- Customer Details -->
     <section class="customer-section">
       <label>
         Client Name:
@@ -50,10 +61,12 @@
       </label>
     </section>
 
+    <!-- Item List -->
     <section class="items-section">
       <table id="itemsTable">
         <thead>
           <tr>
+            <th>Item</th>
             <th>Description</th>
             <th>Qty</th>
             <th>Unit Price</th>
@@ -61,44 +74,45 @@
             <th>Action</th>
           </tr>
         </thead>
-        <tbody id="itemList">
-          <!-- Items will be added here -->
-        </tbody>
+        <tbody id="itemList"></tbody>
       </table>
       <button id="addItemBtn">+ Add Item</button>
     </section>
 
+    <!-- Totals -->
     <section class="totals">
+      <label>
+        Tax (KES):
+        <input type="number" id="taxAmount" placeholder="0.00" min="0" step="0.01" />
+      </label>
       <p><strong>Subtotal:</strong> KES <span id="subtotal">0.00</span></p>
       <p><strong>Total:</strong> KES <span id="total">0.00</span></p>
     </section>
-    <label>
-  Tax (KES):
-  <input type="number" id="taxAmount" placeholder="0.00" min="0" step="0.01" />
-</label>
 
+    <!-- Action Buttons -->
+    <button id="saveBtn">💾 Save Invoice</button>
+    <button id="downloadBtn" disabled>⬇️ Download Invoice</button>
+    <button id="viewInvoicesBtn" disabled>📂 View Saved Invoices</button>
+    <button id="logoutBtn" style="float:right;">🚪 Logout</button>
 
-    <button id="downloadBtn">Download PDF</button>
+    <!-- Saved Invoices -->
+    <ul id="savedInvoicesList" style="display:none;"></ul>
 
-    <!-- Spinner -->
+    <!-- Spinner + Feedback -->
     <div id="spinner" style="display: none; text-align: center; margin-top: 15px;">
       <p>⏳ Generating PDF...</p>
     </div>
-
-    <!-- Feedback -->
     <p id="feedbackMsg" style="text-align: center; font-weight: bold;"></p>
+
+    <!-- Navigation -->
+    <nav>
+      <a href="home.html">🏠 Home</a>
+      <a href="contact.html">📩 Contact</a>
+    </nav>
   </div>
 
- 
-
-  <!-- External JS file -->
+  <!-- External JS Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script type="module" src="invoice.js"></script>
-
-<nav>
-  <a href="home.html">🏠 Home</a>
-  <a href="contact.html">📩 Contact</a>
-
-</nav>
+  <script type="module" src="invoice.js"></script>
 </body>
 </html>
