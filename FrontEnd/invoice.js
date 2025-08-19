@@ -474,6 +474,47 @@ function showLoginModal() {
     initializeForm();
   }
 
+// Update  logout function
+async function logout() {
+  try {
+    // Optional: Call logout API if you have server-side sessions
+    const response = await fetch("/api/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": localStorage.getItem("authToken") || ""
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Clear client-side storage
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    sessionStorage.clear();
+    
+    // Clear any cookies (if used)
+    document.cookie.split(";").forEach(cookie => {
+      document.cookie = cookie.replace(/^ +/, "")
+        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+    });
+    
+    // Redirect to logout page
+    window.location.href = data.redirectUrl || "/logout.html";
+    
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Fallback: redirect even if API call fails
+    localStorage.removeItem("authToken");
+    window.location.href = "/logout.html";
+  }
+}
+
+// Make sure the logout button has the event listener
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", logout);
+}
+
   // Load image helper for PDF generation
   function loadImage(url) {
     return new Promise((resolve) => {
@@ -515,11 +556,46 @@ function showLoginModal() {
     };
   }
 
-  // Logout user
-  function logout() {
-    localStorage.removeItem('authToken');
-    window.location.href = 'login.html';
+  // Update your logout function
+async function logout() {
+  try {
+    // Optional: Call logout API if you have server-side sessions
+    const response = await fetch("/api/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": localStorage.getItem("authToken") || ""
+      }
+    });
+    
+    const data = await response.json();
+    
+    // Clear client-side storage
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+    sessionStorage.clear();
+    
+    // Clear any cookies (if used)
+    document.cookie.split(";").forEach(cookie => {
+      document.cookie = cookie.replace(/^ +/, "")
+        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
+    });
+    
+    // Redirect to logout page
+    window.location.href = data.redirectUrl || "/logout.html";
+    
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Fallback: redirect even if API call fails
+    localStorage.removeItem("authToken");
+    window.location.href = "/logout.html";
   }
+}
+
+// Make sure the logout button has the event listener
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", logout);
+}
 
   // Start the application
   init();

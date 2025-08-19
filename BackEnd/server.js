@@ -385,6 +385,46 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Add security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  next();
+});
+
+// Add session invalidation if using sessions
+app.post("/api/logout", (req, res) => {
+  // If using session cookies
+  res.clearCookie('sessionId');
+  res.clearCookie('authToken');
+  
+  res.json({ 
+    success: true, 
+    message: "Logged out successfully",
+    redirectUrl: "/logout.html" 
+  });
+});
+
+// Add this to your server.js routes
+
+// ▶️ Logout endpoint
+app.post("/api/logout", (req, res) => {
+  // Clear any server-side sessions if you have them
+  // For JWT tokens, the frontend should handle token removal
+  
+  res.json({ 
+    success: true, 
+    message: "Logged out successfully",
+    redirectUrl: "/logout.html" 
+  });
+});
+
+// ▶️ Serve logout page
+app.get("/logout.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "../FrontEnd/logout.html"));
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ 
