@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Logged Out - Mojo Electrical Enterprise</title>
   <style>
     body {
@@ -59,12 +61,6 @@
     .btn:hover {
       background: #5a67d8;
     }
-    
-    .countdown {
-      margin-top: 20px;
-      color: #888;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
@@ -74,30 +70,25 @@
     <p>You have been securely logged out of your account. Thank you for using Mojo Electrical Enterprise Invoice System.</p>
     
     <a href="login.html" class="btn">Return to Login</a>
-    
-    <div class="countdown" id="countdown">
-      Redirecting to login in <span id="seconds">10</span> seconds...
-    </div>
   </div>
 
   <script>
-    // Auto-redirect after 10 seconds
-    let seconds = 10;
-    const countdownElement = document.getElementById('seconds');
+    // CLEAR ALL STORAGE
+    localStorage.clear();
+    sessionStorage.clear();
     
-    const countdown = setInterval(() => {
-      seconds--;
-      countdownElement.textContent = seconds;
-      
-      if (seconds <= 0) {
-        clearInterval(countdown);
-        window.location.href = 'login.html';
-      }
-    }, 1000);
+    // Clear all cookies
+    document.cookie.split(";").forEach(cookie => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+    });
     
-    // Optional: Clear any remaining localStorage items
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    // Prevent back navigation
+    history.pushState(null, null, location.href);
+    window.onpopstate = function() {
+      history.go(1);
+    };
   </script>
 </body>
 </html>

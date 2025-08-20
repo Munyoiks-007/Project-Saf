@@ -1,3 +1,60 @@
+// Add this at the VERY TOP
+window.addEventListener('error', function(e) {
+  console.error('Global error:', e.error);
+  e.preventDefault();
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  console.error('Unhandled promise rejection:', e.reason);
+  e.preventDefault();
+});
+
+(function() {
+  'use strict';
+  
+  // Suppress extension-related errors
+  const originalError = console.error;
+  console.error = function() {
+    if (arguments[0] && typeof arguments[0] === 'string' && 
+        (arguments[0].includes('Could not establish connection') ||
+         arguments[0].includes('content-all.js'))) {
+      return; // Silence extension errors
+    }
+    originalError.apply(console, arguments);
+  };
+})();
+
+// MEDIA ERROR HANDLER 
+(function() {
+  'use strict';
+  
+  // Catch and ignore AbortErrors globally
+  window.addEventListener('unhandledrejection', function(event) {
+    if (event.reason && event.reason.name === 'AbortError') {
+      console.log('Media play aborted (safe to ignore)');
+      event.preventDefault();
+    }
+  });
+
+  // Silence all media elements
+  function silenceMedia() {
+    document.querySelectorAll('video, audio').forEach(media => {
+      try {
+        media.pause();
+        media.volume = 0;
+        media.muted = true;
+      } catch (e) {
+        // Ignore errors
+      }
+    });
+  }
+
+  // Run on page load and every 5 seconds (catch dynamic elements)
+  silenceMedia();
+  setInterval(silenceMedia, 5000);
+})();
+
+// EXISTING INVOICE CODE STARTS HERE
 document.addEventListener('DOMContentLoaded', function() {
   // Configuration
   const API_BASE_URL = 'http://localhost:3000/api';
@@ -23,8 +80,14 @@ document.addEventListener('DOMContentLoaded', function() {
     companyLogo: document.getElementById('company-logo')
   };
 
+  // Prevent multiple initializations
+  let initialized = false;
+
   // Initialize the application
   function init() {
+    if (initialized) return;
+    initialized = true;
+    
     checkAuth();
     setupEventListeners();
     initializeForm();
@@ -32,54 +95,57 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Check authentication
- // Check authentication - Modified version
-function checkAuth() {
-  // Skip auth check if we're already on the login page
-  if (window.location.pathname.includes('login.html')) {
-    return;
+  function checkAuth() {
+    // Skip auth check if we're already on the login page
+    if (window.location.pathname.includes('login.html')) {
+      return;
+    }
+
+    // If no token but we're trying to access invoice.html
+    if (!AUTH_TOKEN && window.location.pathname.includes('invoice.html')) {
+      // Add timeout to prevent immediate redirect loops
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 100);
+      return;
+    }
+
+    // If no token and not on login page, redirect to login
+    if (!AUTH_TOKEN) {
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 100);
+    }
   }
 
-  // If no token but we're trying to access invoice.html
-  if (!AUTH_TOKEN && window.location.pathname.includes('invoice.html')) {
-    // Show a login modal instead of redirecting
-    showLoginModal();
-    return;
-  }
-
-  // If no token and not on login page, redirect to login
-  if (!AUTH_TOKEN) {
-    window.location.href = 'login.html';
-  }
-}
-
-// Add this function to show a login modal
-function showLoginModal() {
-  const modal = document.createElement('div');
-  modal.className = 'login-modal';
-  modal.innerHTML = `
-    <div class="modal-content">
-      <h3>Login Required</h3>
-      <p>Please login to access invoices</p>
-      <div class="modal-buttons">
-        <button id="go-to-login">Go to Login</button>
-        <button id="cancel-login">Cancel</button>
+  // Add this function to show a login modal
+  function showLoginModal() {
+    const modal = document.createElement('div');
+    modal.className = 'login-modal';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h3>Login Required</h3>
+        <p>Please login to access invoices</p>
+        <div class="modal-buttons">
+          <button id="go-to-login">Go to Login</button>
+          <button id="cancel-login">Cancel</button>
+        </div>
       </div>
-    </div>
-  `;
-  
-  document.body.appendChild(modal);
-  document.body.style.overflow = 'hidden';
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
 
-  // Add event listeners
-  document.getElementById('go-to-login').addEventListener('click', () => {
-    window.location.href = 'login.html';
-  });
+    // Add event listeners
+    document.getElementById('go-to-login').addEventListener('click', () => {
+      window.location.href = 'login.html';
+    });
 
-  document.getElementById('cancel-login').addEventListener('click', () => {
-    document.body.removeChild(modal);
-    document.body.style.overflow = '';
-  });
-}
+    document.getElementById('cancel-login').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      document.body.style.overflow = '';
+    });
+  }
 
   // Setup all event listeners
   function setupEventListeners() {
@@ -89,11 +155,15 @@ function showLoginModal() {
     elements.form.addEventListener('submit', handleFormSubmit);
 
     // Add item button
-    elements.addItemBtn?.addEventListener('click', addNewItemRow);
+    elements.addItemBtn?.addEventListener('click', function(e) {
+      e.preventDefault();
+      addNewItemRow();
+    });
 
     // Remove item delegation
     elements.itemsContainer?.addEventListener('click', (e) => {
       if (e.target.classList.contains('remove-item')) {
+        e.preventDefault();
         e.target.closest('.item').remove();
         calculateTotals();
       }
@@ -103,26 +173,59 @@ function showLoginModal() {
     elements.form.addEventListener('input', debounce(calculateTotals, 300));
 
     // View saved invoices
-    elements.viewSavedBtn?.addEventListener('click', loadSavedInvoices);
+    elements.viewSavedBtn?.addEventListener('click', function(e) {
+      e.preventDefault();
+      loadSavedInvoices();
+    });
 
     // PDF download
-    elements.downloadBtn?.addEventListener('click', handlePdfAction);
+    elements.downloadBtn?.addEventListener('click', function(e) {
+      e.preventDefault();
+      handlePdfAction();
+    });
 
     // Logout
-    elements.logoutBtn?.addEventListener('click', logout);
+    elements.logoutBtn?.addEventListener('click', function(e) {
+      e.preventDefault();
+      logout();
+    });
   }
 
   // Initialize form with default values
   function initializeForm() {
     // Set current date
     const today = new Date().toISOString().split('T')[0];
-    elements.invoiceDateInput.value = today;
+    if (elements.invoiceDateInput) {
+      elements.invoiceDateInput.value = today;
+      elements.invoiceDateInput.autocomplete = 'off';
+    }
     
     // Generate invoice number
-    fetchInvoiceNumber();
+    generateInvoiceNumber();
     
     // Add first item row
     addNewItemRow();
+    
+    // Set autocomplete attributes
+    setAutocompleteAttributes();
+  }
+
+  // Set autocomplete attributes for form fields
+  function setAutocompleteAttributes() {
+    if (elements.invoiceNoInput) elements.invoiceNoInput.autocomplete = 'off';
+    if (elements.clientNameInput) elements.clientNameInput.autocomplete = 'organization';
+    if (elements.taxRateInput) elements.taxRateInput.autocomplete = 'off';
+    
+    // Set for existing items
+    document.querySelectorAll('#items .item input').forEach(input => {
+      if (input.name.includes('item[]') || input.name.includes('description[]')) {
+        input.autocomplete = 'off';
+      } else if (input.name.includes('price[]')) {
+        input.autocomplete = 'transaction-amount';
+      } else if (input.name.includes('quantity[]')) {
+        input.autocomplete = 'off';
+      }
+    });
   }
 
   // Load company logo with fallback
@@ -135,28 +238,10 @@ function showLoginModal() {
     };
   }
 
-  // Fetch invoice number from API
-  async function fetchInvoiceNumber() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/invoice-number`, {
-        headers: { 
-          'Authorization': AUTH_TOKEN,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) throw new Error('Failed to generate invoice number');
-      
-      const { invoice_no } = await response.json();
-      elements.invoiceNoInput.value = invoice_no;
-    } catch (error) {
-      console.error('Error generating invoice number:', error);
-      generateInvoiceNumber(); // Fallback to client-side
-    }
-  }
-
   // Client-side invoice number generation
   function generateInvoiceNumber() {
+    if (!elements.invoiceNoInput) return;
+    
     const now = new Date();
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     elements.invoiceNoInput.value = 
@@ -165,13 +250,15 @@ function showLoginModal() {
 
   // Add new item row to the form
   function addNewItemRow() {
+    if (!elements.itemsContainer) return;
+    
     const itemDiv = document.createElement('div');
     itemDiv.className = 'item';
     itemDiv.innerHTML = `
-      <input type="text" name="item[]" placeholder="Item name" required maxlength="100">
-      <input type="text" name="description[]" placeholder="Description" maxlength="500">
-      <input type="number" name="quantity[]" placeholder="Qty" min="0.01" step="0.01" required>
-      <input type="number" name="price[]" placeholder="Unit price" min="0" step="0.01" required>
+      <input type="text" name="item[]" placeholder="Item name" required maxlength="100" autocomplete="off">
+      <input type="text" name="description[]" placeholder="Description" maxlength="500" autocomplete="off">
+      <input type="number" name="quantity[]" placeholder="Qty" min="0.01" step="0.01" required autocomplete="off">
+      <input type="number" name="price[]" placeholder="Unit price" min="0" step="0.01" required autocomplete="transaction-amount">
       <button type="button" class="remove-item">Remove</button>
     `;
     elements.itemsContainer.appendChild(itemDiv);
@@ -180,6 +267,10 @@ function showLoginModal() {
   // Calculate and display totals
   function calculateTotals() {
     try {
+      if (!elements.itemsContainer || !elements.taxRateInput) {
+        return { subtotal: 0, tax: 0, total: 0 };
+      }
+      
       const items = Array.from(elements.itemsContainer.querySelectorAll('.item'));
       
       const subtotal = items.reduce((sum, item) => {
@@ -193,9 +284,9 @@ function showLoginModal() {
       const total = subtotal + tax;
 
       // Update display
-      elements.subtotalDisplay.textContent = `Subtotal: KES ${subtotal.toFixed(2)}`;
-      elements.taxDisplay.textContent = `Tax: KES ${tax.toFixed(2)}`;
-      elements.totalDisplay.textContent = `Total: KES ${total.toFixed(2)}`;
+      if (elements.subtotalDisplay) elements.subtotalDisplay.textContent = `Subtotal: KES ${subtotal.toFixed(2)}`;
+      if (elements.taxDisplay) elements.taxDisplay.textContent = `Tax: KES ${tax.toFixed(2)}`;
+      if (elements.totalDisplay) elements.totalDisplay.textContent = `Total: KES ${total.toFixed(2)}`;
 
       return { subtotal, tax, total };
     } catch (error) {
@@ -209,13 +300,13 @@ function showLoginModal() {
     const { subtotal, tax, total } = calculateTotals();
     
     return {
-      invoice_no: elements.invoiceNoInput.value,
-      client_name: elements.clientNameInput.value.trim(),
-      invoice_date: elements.invoiceDateInput.value,
+      invoice_no: elements.invoiceNoInput?.value || '',
+      client_name: elements.clientNameInput?.value.trim() || '',
+      invoice_date: elements.invoiceDateInput?.value || '',
       subtotal,
       tax,
       total,
-      items: Array.from(elements.itemsContainer.querySelectorAll('.item')).map(item => ({
+      items: Array.from(elements.itemsContainer?.querySelectorAll('.item') || []).map(item => ({
         item: item.querySelector('[name="item[]"]').value.trim() || 'Unspecified Item',
         description: item.querySelector('[name="description[]"]').value.trim(),
         quantity: parseFloat(item.querySelector('[name="quantity[]"]').value) || 0,
@@ -228,7 +319,22 @@ function showLoginModal() {
 
   // Handle form submission
   async function handleFormSubmit(e) {
-    e.preventDefault();
+    e.preventDefault(); // ← THIS IS CRUCIAL
+    if (!elements.form) return;
+    
+    // Basic validation
+    if (!elements.clientNameInput.value.trim()) {
+      showNotification('❌ Client name is required', 'error');
+      elements.clientNameInput.focus();
+      return;
+    }
+    
+    if (!elements.invoiceDateInput.value) {
+      showNotification('❌ Invoice date is required', 'error');
+      elements.invoiceDateInput.focus();
+      return;
+    }
+    
     const submitBtn = elements.form.querySelector('button[type="submit"]');
     const originalBtnText = submitBtn.textContent;
     submitBtn.disabled = true;
@@ -237,15 +343,22 @@ function showLoginModal() {
     try {
       const payload = prepareInvoiceData();
       
-      // Validate required fields
-      if (!payload.client_name) throw new Error('Client name is required');
-      if (!payload.invoice_date) throw new Error('Invoice date is required');
+      // Validate items
       if (payload.items.length === 0) throw new Error('At least one item is required');
 
-      const response = await fetchWithErrorHandling(`${API_BASE_URL}/invoices`, {
+      const response = await fetch(`${API_BASE_URL}/invoices`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_TOKEN
+        },
         body: JSON.stringify(payload)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+      }
 
       showNotification('✅ Invoice saved successfully!');
       resetForm();
@@ -255,30 +368,6 @@ function showLoginModal() {
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = originalBtnText;
-    }
-  }
-
-  // Fetch wrapper with error handling
-  async function fetchWithErrorHandling(url, options = {}) {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': AUTH_TOKEN,
-          ...options.headers
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Request failed with status ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
     }
   }
 
@@ -293,15 +382,26 @@ function showLoginModal() {
     elements.savedList.style.display = 'block';
 
     try {
-      const { data } = await fetchWithErrorHandling(`${API_BASE_URL}/invoices`);
+      const response = await fetch(`${API_BASE_URL}/invoices`, {
+        headers: {
+          'Authorization': AUTH_TOKEN,
+          'Content-Type': 'application/json'
+        }
+      });
       
-      elements.savedList.innerHTML = data.length > 0 
-        ? data.map(invoice => `
+      if (!response.ok) {
+        throw new Error(`Failed to fetch invoices: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      elements.savedList.innerHTML = data.data && data.data.length > 0 
+        ? data.data.map(invoice => `
             <li class="invoice-item">
               <div class="invoice-info">
                 <strong>${invoice.invoice_no}</strong>
                 <span>${invoice.client_name}</span>
-                <span>KES ${invoice.total.toFixed(2)}</span>
+                <span>KES ${invoice.total?.toFixed(2) || '0.00'}</span>
                 <span>${new Date(invoice.invoice_date).toLocaleDateString()}</span>
               </div>
               <div class="invoice-actions">
@@ -314,11 +414,17 @@ function showLoginModal() {
 
       // Add event listeners to buttons
       document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => viewInvoiceDetail(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          viewInvoiceDetail(btn.dataset.id);
+        });
       });
       
       document.querySelectorAll('.pdf-btn').forEach(btn => {
-        btn.addEventListener('click', () => downloadInvoicePdf(btn.dataset.id));
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          downloadInvoicePdf(btn.dataset.id);
+        });
       });
 
     } catch (error) {
@@ -337,30 +443,49 @@ function showLoginModal() {
   // View single invoice detail
   async function viewInvoiceDetail(invoiceId) {
     try {
-      const { data } = await fetchWithErrorHandling(`${API_BASE_URL}/invoices/${invoiceId}`);
+      const response = await fetch(`${API_BASE_URL}/invoices/${invoiceId}`, {
+        headers: {
+          'Authorization': AUTH_TOKEN,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch invoice');
+      
+      const data = await response.json();
       
       // Populate form with invoice data
-      elements.invoiceNoInput.value = data.invoice_no;
-      elements.clientNameInput.value = data.client_name;
-      elements.invoiceDateInput.value = data.invoice_date;
-      elements.taxRateInput.value = ((data.tax / data.subtotal) * 100).toFixed(2);
+      if (elements.invoiceNoInput) elements.invoiceNoInput.value = data.invoice_no;
+      if (elements.clientNameInput) elements.clientNameInput.value = data.client_name;
+      if (elements.invoiceDateInput) elements.invoiceDateInput.value = data.invoice_date;
+      
+      // Calculate and set tax rate
+      if (elements.taxRateInput && data.subtotal > 0) {
+        elements.taxRateInput.value = ((data.tax / data.subtotal) * 100).toFixed(2);
+      }
       
       // Clear and repopulate items
-      elements.itemsContainer.innerHTML = '';
-      data.items.forEach(item => {
-        addNewItemRow();
-        const lastItem = elements.itemsContainer.lastElementChild;
-        lastItem.querySelector('[name="item[]"]').value = item.item;
-        lastItem.querySelector('[name="description[]"]').value = item.description;
-        lastItem.querySelector('[name="quantity[]"]').value = item.quantity;
-        lastItem.querySelector('[name="price[]"]').value = item.unit_price;
-      });
+      if (elements.itemsContainer) {
+        elements.itemsContainer.innerHTML = '';
+        if (data.items && data.items.length > 0) {
+          data.items.forEach(item => {
+            addNewItemRow();
+            const lastItem = elements.itemsContainer.lastElementChild;
+            lastItem.querySelector('[name="item[]"]').value = item.item || '';
+            lastItem.querySelector('[name="description[]"]').value = item.description || '';
+            lastItem.querySelector('[name="quantity[]"]').value = item.quantity || '';
+            lastItem.querySelector('[name="price[]"]').value = item.unit_price || '';
+          });
+        }
+      }
       
       calculateTotals();
       showNotification('Invoice loaded successfully');
       
       // Scroll to form
-      elements.form.scrollIntoView({ behavior: 'smooth' });
+      if (elements.form) {
+        elements.form.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (error) {
       showNotification(`Failed to load invoice: ${error.message}`, 'error');
     }
@@ -468,52 +593,35 @@ function showLoginModal() {
 
   // Reset form to initial state
   function resetForm() {
-    elements.form.reset();
-    elements.itemsContainer.innerHTML = '';
+    if (elements.form) elements.form.reset();
+    if (elements.itemsContainer) elements.itemsContainer.innerHTML = '';
     addNewItemRow();
     initializeForm();
   }
 
-// Update  logout function
-async function logout() {
-  try {
-    // Optional: Call logout API if you have server-side sessions
-    const response = await fetch("/api/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": localStorage.getItem("authToken") || ""
-      }
-    });
-    
-    const data = await response.json();
-    
-    // Clear client-side storage
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
-    sessionStorage.clear();
-    
-    // Clear any cookies (if used)
-    document.cookie.split(";").forEach(cookie => {
-      document.cookie = cookie.replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-    });
-    
-    // Redirect to logout page
-    window.location.href = data.redirectUrl || "/logout.html";
-    
-  } catch (error) {
-    console.error("Logout error:", error);
-    // Fallback: redirect even if API call fails
-    localStorage.removeItem("authToken");
-    window.location.href = "/logout.html";
+  // FIXED LOGOUT FUNCTION
+  async function logout() {
+    try {
+      // Clear ALL storage immediately
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear cookies aggressively
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+      
+      // Force redirect with cache-busting parameter
+      window.location.href = "/logout.html?t=" + new Date().getTime();
+      
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback redirect
+      window.location.href = "/logout.html";
+    }
   }
-}
-
-// Make sure the logout button has the event listener
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", logout);
-}
 
   // Load image helper for PDF generation
   function loadImage(url) {
@@ -555,47 +663,6 @@ if (logoutBtn) {
       timeout = setTimeout(() => func.apply(context, args), wait);
     };
   }
-
-  // Update your logout function
-async function logout() {
-  try {
-    // Optional: Call logout API if you have server-side sessions
-    const response = await fetch("/api/logout", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": localStorage.getItem("authToken") || ""
-      }
-    });
-    
-    const data = await response.json();
-    
-    // Clear client-side storage
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userData");
-    sessionStorage.clear();
-    
-    // Clear any cookies (if used)
-    document.cookie.split(";").forEach(cookie => {
-      document.cookie = cookie.replace(/^ +/, "")
-        .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
-    });
-    
-    // Redirect to logout page
-    window.location.href = data.redirectUrl || "/logout.html";
-    
-  } catch (error) {
-    console.error("Logout error:", error);
-    // Fallback: redirect even if API call fails
-    localStorage.removeItem("authToken");
-    window.location.href = "/logout.html";
-  }
-}
-
-// Make sure the logout button has the event listener
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", logout);
-}
 
   // Start the application
   init();
