@@ -1,4 +1,6 @@
 import express from "express";
+import PDFDocument from "pdfkit";
+import "pdfkit-table";
 import cors from "cors";
 import pg from "pg";
 import path from "path";
@@ -330,46 +332,87 @@ app.get("/api/invoices/:id", async (req, res) => {
   }
 });
 
-// Generate PDF endpoint
-app.post("/api/invoices/:id/pdf", async (req, res) => {
+
+
+// Generate and stream PDF for invoice (restored format)
+import fs from "fs";
+app.get("/api/invoices/:id/pdf", async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
-
-    // Get invoice data
     const invoice = await client.query(
       `SELECT * FROM invoices WHERE id = $1`,
       [id]
     );
-
     if (invoice.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false,
-        error: "Invoice not found" 
-      });
+      return res.status(404).json({ success: false, error: "Invoice not found" });
     }
-
     const items = await client.query(
       `SELECT * FROM invoice_items WHERE invoice_id = $1`,
       [id]
     );
 
-    // In a real implementation, generate PDF here
-    res.json({
-      success: true,
-      message: "PDF would be generated here",
-      data: {
-        ...invoice.rows[0],
-        items: items.rows
-      }
+    // Debug log for invoice and items
+    console.log('PDF GENERATION DATA:', {
+      invoice: invoice.rows[0],
+      items: items.rows
     });
 
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: "Failed to generate PDF",
-      ...(process.env.NODE_ENV === "development" && { details: err.message })
+    const doc = new PDFDocument({ margin: 40 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Invoice_${invoice.rows[0].invoice_no}.pdf`);
+    doc.pipe(res);
+
+    // Add logo (if exists)
+    const logoPath = path.join(__dirname, '../FrontEnd/logo.png');
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, 40, 30, { width: 60 });
+    }
+
+    // Company info
+    doc.fontSize(16).font('Helvetica-Bold').text('Mojo Electrical Enterprise', 120, 30);
+    doc.fontSize(10).font('Helvetica').text('P.O. Box 98664 - 80100, Mombasa', 120, 50);
+    doc.text('Phone: +254 721 856 011 / 0731 120 072', 120, 65);
+    doc.text('Email: gathucimoses@gmail.com', 120, 80);
+
+    // Invoice info
+    doc.moveDown(2);
+    doc.fontSize(12).font('Helvetica-Bold').text(`Invoice #: ${invoice.rows[0].invoice_no}`);
+    doc.font('Helvetica').text(`Client: ${invoice.rows[0].client_name}`);
+    doc.text(`Date: ${invoice.rows[0].invoice_date}`);
+
+
+    // Items table using pdfkit-table
+    const table = {
+      headers: [
+        { label: "Item", property: "item", width: 70 },
+        { label: "Description", property: "description", width: 180 },
+        { label: "Qty", property: "quantity", width: 40 },
+        { label: "Unit Price", property: "unit_price", width: 60 },
+        { label: "Total", property: "total", width: 60 }
+      ],
+      datas: items.rows.map(item => ({
+        item: item.item,
+        description: item.description,
+        quantity: String(item.quantity),
+        unit_price: String(item.unit_price),
+        total: String(item.total)
+      }))
+    };
+    await doc.table(table, {
+      prepareHeader: () => doc.font('Helvetica-Bold').fontSize(10),
+      prepareRow: (row, i) => doc.font('Helvetica').fontSize(10)
     });
+
+  // Totals
+  doc.moveDown(2);
+  doc.font('Helvetica-Bold').text(`Subtotal: KES ${invoice.rows[0].subtotal}`, 370, doc.y);
+  doc.text(`Tax: KES ${invoice.rows[0].tax}`, 370, doc.y);
+  doc.text(`Total: KES ${invoice.rows[0].total}`, 370, doc.y);
+
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ success: false, error: "Failed to generate PDF" });
   } finally {
     client.release();
   }

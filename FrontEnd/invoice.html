@@ -1,16 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Create Invoice - Mojo Electrical Enterprise</title>
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="invoice.css">
+  <link rel="stylesheet" href="invoice.css" />
+   <link rel="icon" type="image/png" href="favicon.png" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -198,79 +195,6 @@
         width: 100%;
       }
     }
-
-    /* Notification Styles */
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 20px;
-      border-radius: 5px;
-      color: white;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      display: flex;
-      justify-content: between;
-      align-items: center;
-      min-width: 300px;
-    }
-    
-    .notification.success {
-      background: #4CAF50;
-    }
-    
-    .notification.error {
-      background: #F44336;
-    }
-    
-    .notification-close {
-      margin-left: 15px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    
-    .fade-out {
-      opacity: 0;
-      transition: opacity 0.5s ease-out;
-    }
-
-    /* Login Modal Styles */
-    .login-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-    
-    .modal-content {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-    }
-    
-    .modal-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-    
-    .modal-buttons button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -289,31 +213,31 @@
   <form id="invoice-form">
     <div class="form-row">
       <label>📄 Invoice No:
-        <input type="text" id="invoiceNo" name="invoiceNo" placeholder="Will auto-generate" readonly>
+        <input type="text" id="invoiceNo" name="invoiceNo" placeholder="Will auto-generate" readonly />
       </label>
 
       <label>📅 Invoice Date:
-        <input type="date" id="invoiceDate" name="invoiceDate" required>
+        <input type="date" id="invoiceDate" name="invoiceDate" required />
       </label>
     </div>
 
     <div class="form-row">
       <label>👤 Client Name:
-        <input type="text" id="clientName" name="clientName" placeholder="John Doe" required>
+        <input type="text" id="clientName" name="clientName" placeholder="John Doe" required />
       </label>
 
       <label>💸 Tax Rate (%):
-        <input type="number" id="taxRate" name="taxRate" placeholder="e.g. 16" min="0" max="100" step="0.01">
+        <input type="number" id="taxRate" name="taxRate" placeholder="e.g. 16" min="0" max="100" step="0.01" />
       </label>
     </div>
 
     <h3>📦 Items</h3>
     <div id="items">
       <div class="item">
-        <input type="text" name="item[]" placeholder="Item name" required>
-        <input type="text" name="description[]" placeholder="Description">
-        <input type="number" name="quantity[]" placeholder="Quantity" min="1" required>
-        <input type="number" name="price[]" placeholder="Unit price" min="0" step="0.01" required>
+        <input type="text" name="item[]" placeholder="Item name" required />
+        <input type="text" name="description[]" placeholder="Description" />
+        <input type="number" name="quantity[]" placeholder="Quantity" min="1" required />
+        <input type="number" name="price[]" placeholder="Unit price" min="0" step="0.01" required />
         <button type="button" class="remove-item">Remove</button>
       </div>
     </div>
@@ -335,23 +259,15 @@
 
   <ul id="saved-invoices" style="display:none;"></ul>
 
-  <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script>
-    // Initialize jsPDF
-    window.jsPDF = window.jspdf.jsPDF;
-    
-    // API Configuration
-    const API_BASE_URL = 'http://localhost:3000/api';
-    const AUTH_TOKEN = localStorage.getItem('authToken') || '';
-    
-    // Check authentication on page load
-    if (!AUTH_TOKEN && window.location.pathname.endsWith('invoice.html')) {
-      // Redirect to login if not authenticated
-      window.location.href = 'login.html';
-    }
-  </script>
-  <script src="/invoice.js"></script>
+<script>
+  // API Configuration
+  const API_BASE_URL = 'http://localhost:3000/api';
+  const AUTH_TOKEN = localStorage.getItem('authToken') || '';
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>window.jsPDF = window.jspdf.jsPDF;</script>
+<script src="invoice.js"></script>
+
 </body>
 </html>
