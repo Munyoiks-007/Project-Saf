@@ -39,12 +39,17 @@ try {
             require_once __DIR__ . '/api/health.php';
             break;
             
-        case $path === '/api/invoice-number':
-            if ($method === 'GET') {
-                $invoiceNo = generateInvoiceNumber();
-                jsonResponse(['invoice_no' => $invoiceNo]);
-            }
-            break;
+            case $path === '/api/invoice-number':
+                require_once __DIR__ . '/api/invoice-number.php';
+                break;
+
+            case $path === '/api/invoices/export':
+                require_once __DIR__ . '/api/invoices/export.php';
+                break;
+
+            case $path === '/api/invoices/summary':
+                require_once __DIR__ . '/api/invoices/summary.php';
+                break;
             
         case $path === '/api/invoices':
             if ($method === 'GET') {
@@ -78,6 +83,28 @@ try {
                 ]);
             }
             break;
+            
+            case $path === '/api/auth':
+                require_once __DIR__ . '/api/auth.php';
+                break;
+            
+            case $path === '/api/clients':
+                require_once __DIR__ . '/api/clients.php';
+                break;
+            
+            case $path === '/api/quotations':
+                require_once __DIR__ . '/api/quotations.php';
+                break;
+            
+            case $path === '/api/dashboard':
+                require_once __DIR__ . '/api/dashboard.php';
+                break;
+            
+            case preg_match('/^\/api\/quotations\/(\d+)\/convert$/', $path, $matches):
+                $_GET['id'] = $matches[1];
+                $_GET['action'] = 'convert';
+                require_once __DIR__ . '/api/quotations.php';
+                break;
             
         default:
             http_response_code(404);
