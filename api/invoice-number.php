@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/functions.php';
 
-function generateInvoiceNumber() {
+function generateSequentialInvoiceNumber() {
     // Get last invoice number
     require_once __DIR__ . '/../includes/Database.php';
     $db = Database::getInstance();
@@ -33,6 +33,6 @@ function generateInvoiceNumber() {
     return "INV-$year$month-$nextNum";
 }
 
-$invoiceNo = generateInvoiceNumber();
+$invoiceNo = generateSequentialInvoiceNumber();
 jsonResponse(['invoice_no' => $invoiceNo]);
 ?>

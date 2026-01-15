@@ -37,22 +37,51 @@ try {
     $db->beginTransaction();
     
     // Insert invoice
-    $stmt = $pdo->prepare("
-        INSERT INTO invoices 
-        (invoice_no, client_name, invoice_date, subtotal, tax, total)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ");
+   $stmt = $pdo->prepare(
+  "INSERT INTO invoices (
+    user_id,
+    invoice_no,
+    client_name,
+    client_email,
+    client_phone,
+    client_address,
+    invoice_date,
+    due_date,
+    subtotal,
+    tax_rate,
+    tax_amount,
+    `total`,
+    status,
+    notes
+  ) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+  )"
+);
+
     
     $stmt->execute([
-        $input['invoice_no'],
-        $input['client_name'],
-        $input['invoice_date'],
-        validateNumber($input['subtotal'] ?? 0, 'subtotal'),
-        validateNumber($input['tax'] ?? 0, 'tax'),
-        validateNumber($input['total'] ?? 0, 'total')
-    ]);
+  $input['user_id'] ?? null,
+  $input['invoice_no'],
+  $input['client_name'],
+  $input['client_email'] ?? null,
+  $input['client_phone'] ?? null,
+  $input['client_address'] ?? null,
+  $input['invoice_date'],
+  $input['due_date'] ?? null,
+  validateNumber($input['subtotal'] ?? 0, 'subtotal'),
+  validateNumber($input['tax_rate'] ?? 0, 'tax_rate'),
+  validateNumber($input['tax_amount'] ?? 0, 'tax_amount'),
+  validateNumber($input['total'] ?? 0, 'total'),
+  $input['status'] ?? 'draft',
+  $input['notes'] ?? null
+]);
+
     
     $invoiceId = $pdo->lastInsertId();
+    
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
     
     // Insert items
     $itemStmt = $pdo->prepare("
@@ -82,6 +111,14 @@ try {
     
 } catch (Exception $e) {
     $db->rollBack();
+
+    if (str_contains($e->getMessage(), 'Duplicate')) {
+        jsonResponse([
+            'success' => false,
+            'error' => 'Invoice already saved'
+        ], 409);
+    }
+
     jsonResponse([
         'success' => false,
         'error' => $e->getMessage()

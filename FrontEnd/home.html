@@ -3,44 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mojo Electrical Enterprise</title>
+  <title>Mojo Electrical Enterprise - Professional Electrical Services</title>
   <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+  <!-- Header -->
   <header>
-    <img src="logo.png" alt="Mojo Electrical Logo" />
-    <h1>MOJO ELECTRICAL ENTERPRISE</h1>
-    <p>Reliability in Electrical Services</p>
-    <nav>
-      <a href="contact.html">Contact</a>
-    </nav>
+    <div class="header-container">
+      <img src="logo.png" alt="Mojo Electrical Logo" class="logo" />
+      <div class="header-content">
+        <h1>MOJO ELECTRICAL ENTERPRISE</h1>
+        <p class="tagline">Reliability in Electrical Services Since 2005</p>
+        <nav>
+          <a href="#services">Our Services</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </div>
   </header>
 
+  <!-- Hero Section -->
   <section class="hero">
-    <h2>Professional Electrical Services</h2>
+    <h2>Professional Electrical Solutions</h2>
     <p>
-      Domestic, Commercial & Industrial Installations, Motor Controls, Power Design,
-      Accessories & Field Services.
+      Providing exceptional electrical services for residential, commercial, and industrial clients across Kenya. 
+      From complex installations to routine maintenance, we deliver safety, quality, and reliability in every project.
     </p>
-    <a href="invoice.html">Create Invoice / Quote</a>
+    
+    <div class="action-cards">
+      <div class="action-card invoice">
+        <div class="action-icon">
+          <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <h3>Invoice Management</h3>
+        <p>Create, manage, and track invoices for completed work. Generate professional invoices with detailed breakdowns.</p>
+        <button class="action-btn invoice" data-action="invoice">
+          <i class="fas fa-sign-in-alt"></i> Access Invoices
+        </button>
+      </div>
+      
+      <div class="action-card quote">
+        <div class="action-icon">
+          <i class="fas fa-file-contract"></i>
+        </div>
+        <h3>Quote Creation</h3>
+        <p>Prepare detailed quotes and estimates for potential projects. Professional templates with itemized pricing.</p>
+        <button class="action-btn quote" data-action="quote">
+          <i class="fas fa-sign-in-alt"></i> Access Quotes
+        </button>
+      </div>
+    </div>
   </section>
 
-  <section class="info">
-    <h3>Technical Director: Moses K. Gathuci</h3>
+  <!-- Services Section -->
+  <section id="services" class="services">
+    <div class="service-card">
+      <div class="service-icon">
+        <i class="fas fa-home"></i>
+      </div>
+      <h3>Domestic Services</h3>
+      <p>Complete home electrical installations, wiring, lighting, safety inspections, and emergency repairs for residential properties.</p>
+    </div>
+    
+    <div class="service-card">
+      <div class="service-icon">
+        <i class="fas fa-building"></i>
+      </div>
+      <h3>Commercial Solutions</h3>
+      <p>Office electrical systems, retail space installations, energy-efficient lighting, and commercial-grade power solutions.</p>
+    </div>
+    
+    <div class="service-card">
+      <div class="service-icon">
+        <i class="fas fa-industry"></i>
+      </div>
+      <h3>Industrial Expertise</h3>
+      <p>Heavy-duty installations, motor controls, power distribution, machinery wiring, and industrial automation systems.</p>
+    </div>
+    
+    <div class="service-card">
+      <div class="service-icon">
+        <i class="fas fa-bolt"></i>
+      </div>
+      <h3>Power Design</h3>
+      <p>Custom electrical designs, load calculations, system planning, and energy optimization for optimal performance.</p>
+    </div>
+  </section>
+
+  <!-- Contact Info -->
+  <section id="contact" class="info">
+    <h3><i class="fas fa-user-tie"></i> Technical Director: Moses K. Gathuci</h3>
     <p>
-      Phone: +254 721 856 011, 0731 120 072<br/>
-      Email: gathucimoses@gmail.com / gathucimoses@yahoo.com<br/>
-      P.O. Box 98664 - 80100, Mombasa
+      <strong><i class="fas fa-phone"></i> Phone:</strong> +254 721 856 011 / +254 731 120 072<br/><br/>
+      <strong><i class="fas fa-envelope"></i> Email:</strong> gathucimoses@gmail.com / gathucimoses@yahoo.com<br/><br/>
+      <strong><i class="fas fa-map-marker-alt"></i> Address:</strong> P.O. Box 98664 - 80100, Mombasa, Kenya
     </p>
   </section>
 
+  <!-- Footer -->
   <footer>
-    &copy; 2025 Mojo Electrical Enterprise. All rights reserved.
+    <p>&copy; 2025 Mojo Electrical Enterprise. All rights reserved.</p>
+    <p>Licensed & Certified Electrical Contractor</p>
   </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="login-modal">
+    <div class="login-content">
+      <button class="login-close">&times;</button>
+      <h3 id="modalTitle">Secure Access</h3>
+      <p class="login-subtitle" id="modalSubtitle">Please enter your credentials</p>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username"><i class="fas fa-user"></i> Username</label>
+          <input type="text" id="username" name="username" required placeholder="Enter your username">
+        </div>
+        
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock"></i> Password</label>
+          <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
+        
+        <div id="loginError" class="login-error">
+          <i class="fas fa-exclamation-circle"></i> Invalid credentials. Please try again.
+        </div>
+        
+        <button type="submit" class="login-btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const VALID_CREDENTIALS = {
+      username: "Moses",
+      password: "Mojo@2026*"
+    };
+
+    // State
+    let currentAction = null;
+
+    // DOM Elements
+    const loginModal = document.getElementById('loginModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const loginForm = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+    const closeButtons = document.querySelectorAll('.login-close, .login-modal');
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      // Action buttons
+      document.querySelectorAll('.action-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          currentAction = e.currentTarget.dataset.action;
+          showLoginModal();
+        });
+      });
+
+      // Close modal
+      closeButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          if (e.target === button || e.target.classList.contains('login-close')) {
+            hideLoginModal();
+          }
+        });
+      });
+
+      // Login form submission
+      loginForm.addEventListener('submit', handleLogin);
+
+      // Close modal with Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && loginModal.classList.contains('active')) {
+          hideLoginModal();
+        }
+      });
+    });
+
+    // Functions
+    function showLoginModal() {
+      const titles = {
+        invoice: {
+          title: "Invoice System Login",
+          subtitle: "Access the invoice management system"
+        },
+        quote: {
+          title: "Quote System Login",
+          subtitle: "Access the quote creation system"
+        }
+      };
+
+      const titleConfig = titles[currentAction] || titles.invoice;
+      modalTitle.textContent = titleConfig.title;
+      modalSubtitle.textContent = titleConfig.subtitle;
+      
+      loginError.style.display = 'none';
+      loginForm.reset();
+      loginModal.classList.add('active');
+    }
+
+    function hideLoginModal() {
+      loginModal.classList.remove('active');
+      currentAction = null;
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      
+      // Validate credentials
+      if (username === VALID_CREDENTIALS.username && password === VALID_CREDENTIALS.password) {
+        // Successful login
+        loginError.style.display = 'none';
+        
+        // Simulate API call delay
+        setTimeout(() => {
+          // Redirect based on action
+          if (currentAction === 'invoice') {
+            window.location.href = 'invoice.html';
+          } else if (currentAction === 'quote') {
+            window.location.href = 'quote.html';
+          }
+        }, 500);
+      } else {
+        // Failed login
+        loginError.style.display = 'block';
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    }
+
+    // Add a simple fade-in animation for elements
+    document.addEventListener('DOMContentLoaded', () => {
+      const animateElements = document.querySelectorAll('.service-card, .action-card');
+      animateElements.forEach((el, index) => {
+        setTimeout(() => {
+          el.style.opacity = '1';
+          el.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+  </script>
 
 </body>
 </html>
-
-<link rel="stylesheet" href="style.css" />
-
